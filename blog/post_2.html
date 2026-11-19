@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>Introducing gurl: Rebuilding curl in Go</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif&family=Fascinate+Inline&display=swap" rel="stylesheet">
+</head>
+<body class="ibm-plex-serif-regular">
+
+    <nav class="main-nav">
+        <a class="logo" href="../index.html">Another Portfolio</a>
+        <ul class="nav-links">
+            <li><a href="../projects.html">Projects</a></li>
+            <li><a href="../blog.html">Blog</a></li>
+        </ul>
+    </nav>
+
+    <h1 class="page-title" style="margin-top: 20px;">Introducing gurl</h1>
+
+    <section class="card ibm-plex-serif-regular">
+        <h2 class="ibm-plex-serif-regular" style="margin-bottom: 5px;">Introducing gurl: Rebuilding curl in Go</h2>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 20px; font-family: sans-serif;">November 19, 2026</p>
+
+        <p style="margin-bottom: 15px;">Every developer and sysadmin has typed <code>curl</code> more times than they can count. It is one of those tools that quietly sits underneath everything: testing APIs, downloading files, debugging servers. I wanted to understand what actually happens behind that command, so I decided to build my own version of it from scratch. The result is <strong>gurl</strong>, a Go rendition of curl.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Why rebuild curl?</h3>
+
+        <p style="margin-bottom: 15px;">Using a tool and understanding a tool are two very different things. Coming from an infrastructure and networking background, I know what HTTP looks like on the wire, but writing the client myself forces me to deal with every detail: building requests, handling headers, reading responses, following redirects, and making sense of errors. It is the kind of project that turns knowledge into working code.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Why Go?</h3>
+
+        <p style="margin-bottom: 15px;">Go is a natural fit for networking tools. Its standard library has excellent support for network programming, it compiles to a single static binary that runs anywhere, and its simple syntax keeps the focus on the problem instead of the language. A command-line tool like gurl benefits from all three.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Where it stands today</h3>
+
+        <p style="margin-bottom: 15px;">The first milestone is complete: gurl can make HTTP requests. HTTP is the protocol most people reach for curl to use, so it made sense to build that foundation first and get it right before expanding outward.</p>
+
+        <p style="margin-bottom: 15px;">One place where gurl intentionally differs from curl is its command structure. Instead of passing a URL and a pile of flags, you tell gurl the protocol first, then the command, then the target:</p>
+
+        <pre style="background: #1e1e1e; color: #e6e6e6; padding: 15px; border-radius: 6px; overflow-x: auto; margin-bottom: 15px; font-size: 0.9em;"><code>gurl &lt;protocol&gt; &lt;command&gt; &lt;target&gt;
+
+$ gurl http get example.com</code></pre>
+
+        <p style="margin-bottom: 15px;">Reading left to right, the command says exactly what it does: use HTTP, send a GET request, to example.com. Grouping commands under each protocol also gives gurl a clean way to grow, since every new protocol gets its own set of commands as it is added.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">What's next</h3>
+
+        <p style="margin-bottom: 15px;">The long-term goal is for gurl to be a one-for-one match with curl. That means working through the rest of curl's options and protocols piece by piece until gurl can stand in for the original. I will be writing about each milestone here as it lands, including the parts that turned out harder than expected.</p>
+
+        <p>If you want to follow along or look at the code, the project is available on <a href="https://github.com/YOUR-USERNAME/gurl">GitHub</a>.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; font-family: sans-serif; color: #333;">
+        <p>&copy; 2026 My Portfolio. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
