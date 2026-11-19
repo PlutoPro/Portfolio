@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>Introducing QuickCache: A Key-Value Cache Server in Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif&family=Fascinate+Inline&display=swap" rel="stylesheet">
+</head>
+<body class="ibm-plex-serif-regular">
+
+    <nav class="main-nav">
+        <a class="logo" href="../index.html">Another Portfolio</a>
+        <ul class="nav-links">
+            <li><a href="../projects.html">Projects</a></li>
+            <li><a href="../blog.html">Blog</a></li>
+        </ul>
+    </nav>
+
+    <h1 class="page-title" style="margin-top: 20px;">Introducing QuickCache</h1>
+
+    <section class="card ibm-plex-serif-regular">
+        <h2 class="ibm-plex-serif-regular" style="margin-bottom: 5px;">Introducing QuickCache: A Key-Value Cache Server in Python</h2>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 20px; font-family: sans-serif;">November 19, 2026</p>
+
+        <p style="margin-bottom: 15px;">Caches like Redis and Memcached sit behind a huge share of the applications we use every day. They keep frequently used data in memory so it can be served fast, without a round trip to a database. I wanted to understand how a server like that works at its core, so I built my own: <strong>QuickCache</strong>, a lightweight, asynchronous in-memory key-value cache server written in Python.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">The idea</h3>
+
+        <p style="margin-bottom: 15px;">QuickCache is deliberately small. It talks over raw TCP sockets instead of HTTP, uses a plain-text command protocol, and is built entirely on Python's standard library. There are no external dependencies to install. If you have Python 3.7 or newer, you can clone it and run it.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">How it works</h3>
+
+        <p style="margin-bottom: 15px;">The server is built on Python's <code>asyncio</code> library. Rather than spinning up a new thread for every client, a single event loop handles all of the connections at once. Each client gets its own handler that reads commands, acts on an in-memory dictionary, and writes a response back. Using <code>asyncio</code> this way means many clients can be connected at the same time without blocking one another.</p>
+
+        <p style="margin-bottom: 15px;">The protocol is just as simple. Each command is a space-separated line of text ending in a newline. QuickCache currently supports four commands:</p>
+
+        <ul style="margin-bottom: 15px; padding-left: 25px;">
+            <li style="margin-bottom: 6px;"><code>SET &lt;key&gt; &lt;value&gt;</code> stores a value under a key.</li>
+            <li style="margin-bottom: 6px;"><code>GET &lt;key&gt;</code> returns the value stored under a key.</li>
+            <li style="margin-bottom: 6px;"><code>DEL &lt;key&gt;</code> removes a key from the cache.</li>
+            <li><code>LIST</code> returns every key and value currently stored.</li>
+        </ul>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Trying it out</h3>
+
+        <p style="margin-bottom: 15px;">Start the server with <code>python main.py</code> and it listens on <code>127.0.0.1:8888</code>. Because it speaks plain TCP, you don't need a special client. Netcat works fine:</p>
+
+        <pre style="background: #1e1e1e; color: #e6e6e6; padding: 15px; border-radius: 6px; overflow-x: auto; margin-bottom: 15px; font-size: 0.9em;"><code>$ nc 127.0.0.1 8888
+SET user_101 active
+OK: user_101 set to active
+GET user_101
+user_101: active
+DEL user_101
+OK: user_101 deleted
+GET user_101
+user_101: Key not found</code></pre>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">What I learned</h3>
+
+        <p style="margin-bottom: 15px;">Building QuickCache made it clear how much a "simple" cache server has to think about. Even with a handful of commands, the server has to parse input it can't trust, respond with clear errors when a command is malformed, and clean up properly when a client disconnects unexpectedly. Writing the protocol myself also showed me why real systems like Redis put so much care into how their commands are framed.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">What's next</h3>
+
+        <p style="margin-bottom: 15px;">QuickCache does the basics today, and the roadmap is about turning it into something closer to a real cache:</p>
+
+        <ul style="margin-bottom: 15px; padding-left: 25px;">
+            <li style="margin-bottom: 6px;"><strong>Key expiration (TTL)</strong> so entries can expire on their own.</li>
+            <li style="margin-bottom: 6px;"><strong>Richer values</strong>, including values with spaces and JSON payloads.</li>
+            <li><strong>Persistence</strong>, snapshotting the cache to disk so data survives a restart.</li>
+        </ul>
+
+        <p>The code is available on <a href="https://github.com/PlutoPro/QuickCache">GitHub</a> if you want to try it or follow along as it grows.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; font-family: sans-serif; color: #333;">
+        <p>&copy; 2026 My Portfolio. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

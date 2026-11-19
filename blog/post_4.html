@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>Exploring Asynchronous Programming in Python</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif&family=Fascinate+Inline&display=swap" rel="stylesheet">
+</head>
+<body class="ibm-plex-serif-regular">
+
+    <nav class="main-nav">
+        <a class="logo" href="../index.html">Another Portfolio</a>
+        <ul class="nav-links">
+            <li><a href="../projects.html">Projects</a></li>
+            <li><a href="../blog.html">Blog</a></li>
+        </ul>
+    </nav>
+
+    <h1 class="page-title" style="margin-top: 20px;">Async in Python</h1>
+
+    <section class="card ibm-plex-serif-regular">
+        <h2 class="ibm-plex-serif-regular" style="margin-bottom: 5px;">Exploring Asynchronous Programming in Python</h2>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 20px; font-family: sans-serif;">November 19, 2026</p>
+
+        <p style="margin-bottom: 15px;">When I built <a href="https://github.com/PlutoPro/QuickCache">QuickCache</a>, my key-value cache server, I needed it to handle more than one client at a time. That requirement pushed me into Python's <code>asyncio</code> library, and asynchronous programming turned out to be one of the most interesting parts of the whole project. This post covers what I learned along the way.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">The problem: waiting</h3>
+
+        <p style="margin-bottom: 15px;">Most of what a network server does is wait. It waits for a client to connect, waits for data to arrive, and waits for a response to finish sending. In ordinary synchronous code, every one of those waits blocks the whole program. If one client is slow to send its next command, every other client is stuck behind it.</p>
+
+        <p style="margin-bottom: 15px;">The traditional fix is to give each client its own thread. That works, but threads carry memory overhead, and code that shares data between threads has to be careful about locking. Asynchronous programming takes a different approach.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">The event loop</h3>
+
+        <p style="margin-bottom: 15px;">At the center of <code>asyncio</code> is the <strong>event loop</strong>. It runs on a single thread and keeps track of many tasks at once. Whenever a task reaches a point where it has to wait, such as reading from a socket, it hands control back to the loop. The loop then runs whichever task is ready to make progress. When the data the first task was waiting for arrives, the loop picks it back up where it left off.</p>
+
+        <p style="margin-bottom: 15px;">Nothing actually runs in parallel. The program is simply never sitting idle while there is other work it could be doing. For I/O-heavy programs like servers, that is usually all you need.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">async and await</h3>
+
+        <p style="margin-bottom: 15px;">Python expresses this with two keywords. Defining a function with <code>async def</code> makes it a <strong>coroutine</strong>, a function that can pause and resume. Inside it, <code>await</code> marks the spots where it is allowed to pause and let other tasks run.</p>
+
+        <pre style="background: #1e1e1e; color: #e6e6e6; padding: 15px; border-radius: 6px; overflow-x: auto; margin-bottom: 15px; font-size: 0.9em;"><code>import asyncio
+
+async def fetch(name, delay):
+    print(f"{name} started")
+    await asyncio.sleep(delay)   # pause here, let others run
+    print(f"{name} finished")
+
+async def main():
+    await asyncio.gather(
+        fetch("A", 2),
+        fetch("B", 1),
+    )
+
+asyncio.run(main())</code></pre>
+
+        <p style="margin-bottom: 15px;">Both tasks start right away, B finishes first, and the whole program takes about two seconds instead of three. That is the core idea in a few lines: while one task waits, another one runs.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">How QuickCache uses it</h3>
+
+        <p style="margin-bottom: 15px;">QuickCache starts its server with <code>asyncio.start_server</code>, which calls a handler coroutine for every client that connects. Each handler loops on <code>await reader.read(...)</code> to wait for the next command, updates the in-memory dictionary, and sends back a response with <code>writer.write</code> followed by <code>await writer.drain()</code>. The <code>drain</code> call matters: it pauses the handler if the outgoing buffer is filling up faster than the client can receive it, which keeps one slow client from eating up memory.</p>
+
+        <p style="margin-bottom: 15px;">Because every wait is an <code>await</code>, dozens of clients can be connected at once on a single thread, each one paused until it has something to say.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Lessons and gotchas</h3>
+
+        <ul style="margin-bottom: 15px; padding-left: 25px;">
+            <li style="margin-bottom: 8px;"><strong>Blocking calls freeze everything.</strong> A regular <code>time.sleep()</code> or a blocking library call inside a coroutine stops the entire event loop, not just that task. In async code you need the async versions, like <code>asyncio.sleep()</code>.</li>
+            <li style="margin-bottom: 8px;"><strong><code>async</code> is not automatically faster.</strong> Marking a function <code>async</code> only helps if it actually awaits something. A coroutine that just looks up a value in a dictionary gains nothing from being async; it simply adds a little overhead.</li>
+            <li style="margin-bottom: 8px;"><strong>It is built for I/O, not heavy computation.</strong> Async shines when a program spends its time waiting on networks or disks. CPU-heavy work still runs on one thread and will block the loop, so that kind of work belongs in a separate process or thread pool.</li>
+            <li><strong>TCP is a stream, not a list of messages.</strong> Reading a fixed number of bytes does not guarantee you get exactly one command. Reading line by line with <code>reader.readline()</code> is a more reliable way to frame a newline-based protocol, and it is on my list of improvements for QuickCache.</li>
+        </ul>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Wrapping up</h3>
+
+        <p>Asynchronous programming felt strange at first, but building a real server with it made the model click. Once you see that the event loop is simply juggling tasks that are waiting, <code>async</code> and <code>await</code> stop looking like magic. I plan to keep building on these ideas as QuickCache grows, starting with key expiration, which is a natural fit for scheduled async tasks.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; font-family: sans-serif; color: #333;">
+        <p>&copy; 2026 My Portfolio. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
