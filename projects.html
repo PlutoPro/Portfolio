@@ -1,38 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
-<head class="page-head">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | Chandler Higginbotham</title>
+    <meta name="description" content="Software projects by Chandler Higginbotham — systems and infrastructure tools in Rust, Go and Python.">
     <link rel="stylesheet" href="css/style.css">
-    <title class="page-title">Projects</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fascinate+Inline&family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="ibm-plex-serif-regular">
     <nav class="main-nav">
-        <a class="logo" href="index.html">Another Portfolio</a>
+        <a class="logo" href="index.html">Chandler Higginbotham</a>
         <ul class="nav-links">
             <li><a href="projects.html">Projects</a></li>
             <li><a href="blog.html">Blog</a></li>
         </ul>
     </nav>
-    <h1 class="page-title">Projects</h1>
-    
-    <section class="card ibm-plex-serif-regular">
-        <h2>My Projects</h2>
-        <p>Here are some of the projects I have worked on.</p>
-        <ul class="latest-posts">
-            <li><a href="https://github.com/PlutoPro/Portfolio" class="ibm-plex-serif-regular">Another Portfolio</a></li>
-            <li><a href="https://github.com/PlutoPro/gurl" class="ibm-plex-serif-regular">Gurl: Rebuilding curl in Go</a></li>
-            <li><a href="https://github.com/PlutoPro/QuickCache" class="ibm-plex-serif-regular">QuickCache: A Key-Value Cache Server in Python</a></li>
-            <li><a href="https://github.com/PlutoPro/Cloud-Cache" class="ibm-plex-serif-regular">Cloud Cache: A Multi-Tenant Key-Value Store in Rust</a></li>
-        </ul>
-    </section>
-    <footer>
-        <p>&copy; 2026 My Portfolio. All rights reserved.</p>
-    </footer>
-    <script src="script.js"></script>
 
+    <h1 class="page-title">Projects</h1>
+
+    <section class="card">
+        <h2>My Projects</h2>
+        <p>Systems and infrastructure tools I've built, with write-ups on how they work.</p>
+
+        <div class="project-cards">
+            <article class="project-card">
+                <h3>Cloud Cache</h3>
+                <p>Multi-tenant key-value store in Rust. Each org's keys are isolated, and requests are verified against Keycloak, Auth0 or Entra ID over HTTP and TCP.</p>
+                <ul class="tags">
+                    <li class="tag">Rust</li>
+                    <li class="tag">OIDC</li>
+                    <li class="tag">Keycloak</li>
+                    <li class="tag">Next.js</li>
+                    <li class="tag">Docker</li>
+                </ul>
+                <div class="card-links">
+                    <a href="https://github.com/PlutoPro/Cloud-Cache">Repo →</a>
+                    <a href="blog/post_5.html">Write-up →</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <h3>gurl</h3>
+                <p>A from-scratch recreation of curl in Go: a command-line client for making HTTP requests to servers.</p>
+                <ul class="tags">
+                    <li class="tag">Go</li>
+                    <li class="tag">HTTP</li>
+                    <li class="tag">CLI</li>
+                </ul>
+                <div class="card-links">
+                    <a href="https://github.com/PlutoPro/gurl">Repo →</a>
+                    <a href="blog/post_2.html">Write-up →</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <h3>QuickCache</h3>
+                <!-- TODO: tighten this sentence and tags to match what QuickCache actually does -->
+                <p>A key-value cache server in Python that clients connect to over the network to store and fetch data.</p>
+                <ul class="tags">
+                    <li class="tag">Python</li>
+                    <li class="tag">asyncio</li>
+                    <li class="tag">TCP</li>
+                </ul>
+                <div class="card-links">
+                    <a href="https://github.com/PlutoPro/QuickCache">Repo →</a>
+                    <a href="blog/post_3.html">Write-up →</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Chandler Higginbotham</p>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>

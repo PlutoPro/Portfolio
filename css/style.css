@@ -33,6 +33,74 @@ p {
     margin-bottom: 15px;
 }
 
+/* --- Project Cards --- */
+.project-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.project-card {
+    flex: 1 1 300px;          /* grow, shrink, ~300px base width */
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fff;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.project-card h3 {
+    margin: 0 0 8px;
+}
+
+.project-card p {
+    margin: 0 0 14px;
+    line-height: 1.5;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 0;
+    list-style: none;
+}
+
+.tag {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: #334;
+}
+
+.card-links {
+    margin-top: auto;          /* pins links to the bottom so cards line up */
+    display: flex;
+    gap: 16px;
+}
+
+.card-links a {
+    font-weight: 600;
+    text-decoration: none;
+    color: #333;
+}
+
+.card-links a:hover {
+    text-decoration: underline;
+}
+
 .page-title {
     font-size: 32px;
     color: #333;
@@ -41,14 +109,55 @@ p {
     margin: 25px 0;
 }
 
-.page-head {
-    font-size: 18px;
-    color: #333;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+/* --- Hero --- */
+.hero {
+    max-width: 800px;
+    margin: 40px auto 10px;
+    padding: 0 20px;
     text-align: center;
-    margin: 20px 0;
+}
+
+.hero .page-title {
+    margin: 0 0 10px;
+}
+
+.tagline {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.hero-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 6px;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #333;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #555;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #333;
+}
+
+.btn-outline:hover {
+    background-color: #333;
+    color: #fff;
 }
 
 /* =========================================
@@ -236,4 +345,13 @@ p {
     100% {
         transform: translateX(-100%);
     }
+}
+/* =========================================
+   7. FOOTER
+   ========================================= */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-size: 14px;
 }
