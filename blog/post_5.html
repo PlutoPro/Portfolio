@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>Introducing Cloud Cache: A Multi-Tenant Key-Value Store in Rust</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif&family=Fascinate+Inline&display=swap" rel="stylesheet">
+</head>
+<body class="ibm-plex-serif-regular">
+
+    <nav class="main-nav">
+        <a class="logo" href="../index.html">Another Portfolio</a>
+        <ul class="nav-links">
+            <li><a href="../projects.html">Projects</a></li>
+            <li><a href="../blog.html">Blog</a></li>
+        </ul>
+    </nav>
+
+    <h1 class="page-title" style="margin-top: 20px;">Introducing Cloud Cache</h1>
+
+    <section class="card ibm-plex-serif-regular">
+        <h2 class="ibm-plex-serif-regular" style="margin-bottom: 5px;">Introducing Cloud Cache: A Multi-Tenant Key-Value Store in Rust</h2>
+        <p style="color: #666; font-size: 0.9em; margin-bottom: 20px; font-family: sans-serif;">November 19, 2026</p>
+
+        <p style="margin-bottom: 15px;"><a href="post_3.html">QuickCache</a> taught me how a cache server works at its core. The next question was what it takes to run one for real: shared by a team, secured with real logins, and spread across several servers behind a load balancer. So I built <strong>Cloud Cache</strong>, an open-source key-value store written in Rust. It keeps each organization's data separate, speaks both HTTP and TCP, and checks every request against the identity provider you already use.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">The idea</h3>
+
+        <p style="margin-bottom: 15px;">Most caches leave security to you. You put them on a private network and hope nothing else gets in. I wanted a cache where every request carries a real login token, issued by an identity provider like Keycloak, Auth0 or Microsoft Entra ID, so the cache knows who is asking and what they're allowed to do.</p>
+
+        <p style="margin-bottom: 15px;">I also wanted it to work for teams. In Cloud Cache, every key belongs to an organization. Everyone in that organization shares its keys, and nobody outside it can see them, even if they ask for the same key name.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">How it works</h3>
+
+        <p style="margin-bottom: 15px;">Cloud Cache is built on Rust's <code>tokio</code> runtime, with <code>axum</code> for the HTTP side. Each server holds its keys in memory and offers two ways in. The HTTP API treats a key as a URL and the value as the request body. The TCP API is a line-based protocol in the same spirit as QuickCache, but every connection has to sign in first:</p>
+
+        <ul style="margin-bottom: 15px; padding-left: 25px;">
+            <li style="margin-bottom: 6px;"><code>AUTH &lt;token&gt;</code> signs the connection in with an access token.</li>
+            <li style="margin-bottom: 6px;"><code>SET &lt;key&gt; &lt;value&gt;</code> stores a value under a key.</li>
+            <li style="margin-bottom: 6px;"><code>SETEX &lt;key&gt; &lt;seconds&gt; &lt;value&gt;</code> stores a value that expires on its own.</li>
+            <li style="margin-bottom: 6px;"><code>GET &lt;key&gt;</code> returns the value stored under a key.</li>
+            <li><code>DEL &lt;key&gt;</code> removes a key.</li>
+        </ul>
+
+        <p style="margin-bottom: 15px;">A TCP session only lasts as long as the token that opened it. When the token expires, commands return an error until the client sends <code>AUTH</code> again with a fresh one, without having to reconnect.</p>
+
+        <p style="margin-bottom: 15px;">Checking tokens is split into two separate jobs. The first is making sure a token is genuine: the signature, who issued it, who it's for and when it expires. That part is standard and the same for every provider. The second is working out what the token means: which roles the person has and which organizations they belong to.</p>
+
+        <p style="margin-bottom: 15px;">Every provider puts that information in a different place, so Cloud Cache ships with presets for Keycloak, Auth0, Entra ID, Zitadel and a single-team mode, and any of them can be adjusted with settings. Because the servers download the provider's signing keys once and check tokens themselves, there's no extra round trip to the provider on each request.</p>
+
+        <p style="margin-bottom: 15px;">It's also built to sit behind a load balancer. A server only reports itself ready once it can verify tokens, and when it's shutting down it stops taking new traffic before it closes, so requests aren't dropped. The project includes an HAProxy setup that sends each key to the same server every time. There's also a web dashboard, built with Next.js, where people can browse and edit their organization's keys, see their usage and manage who's on their team.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">Trying it out</h3>
+
+        <p style="margin-bottom: 15px;">The whole setup runs with Docker Compose: Keycloak for logins, three Cloud Cache servers, HAProxy in front of them and the dashboard. Give Keycloak 30 to 60 seconds to start, then open <code>http://localhost:3100</code> and sign in as <code>alice</code> with the password <code>alice</code>.</p>
+
+        <pre style="background: #1e1e1e; color: #e6e6e6; padding: 15px; border-radius: 6px; overflow-x: auto; margin-bottom: 15px; font-size: 0.9em;"><code>$ git clone https://github.com/PlutoPro/Cloud-Cache
+$ cd Cloud-Cache/deploy
+$ docker compose up --build</code></pre>
+
+        <p style="margin-bottom: 15px;">To use the TCP API, get a token from Keycloak first, then talk to the cache with Netcat:</p>
+
+        <pre style="background: #1e1e1e; color: #e6e6e6; padding: 15px; border-radius: 6px; overflow-x: auto; margin-bottom: 15px; font-size: 0.9em;"><code>$ curl -s localhost:18081/realms/kv/protocol/openid-connect/token \
+    -d grant_type=password -d client_id=kv-cli \
+    -d username=alice -d password=alice | jq -r .access_token
+eyJhbGciOiJSUzI1NiIs...
+$ nc localhost 17379
+AUTH eyJhbGciOiJSUzI1NiIs...
+OK alice 6f1d2c3b-aaaa-4bbb-8ccc-000000000001
+SET greeting hello there
+OK
+GET greeting
+VALUE hello there
+QUIT
+BYE</code></pre>
+
+        <p style="margin-bottom: 15px;">The long ID after <code>alice</code> is her organization. Anything she stores lands in that organization's keyspace, and the same key is readable over HTTP with the same token.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">What I learned</h3>
+
+        <p style="margin-bottom: 15px;">The biggest lesson was that tests against fake services only go so far. The automated tests use a mock identity provider, and they caught a lot. But several bugs only showed up when I ran everything against a real Keycloak and clicked through the dashboard in a real browser. Keycloak, for example, sent organization information in a different shape than I expected, mixing two formats into one list.</p>
+
+        <p style="margin-bottom: 15px;">My favorite bug was one where nothing looked wrong. The dashboard was supposed to quietly renew people's logins before they expired, but it never did. I had named my expiry field <code>exp</code>, and the encrypted cookie that stores the session uses a field with the same name for its own expiry, which silently overwrote mine. People only stayed signed in because the servers allow 30 seconds of leeway on expiry. It surfaced only when I shortened the login lifetime and checked whether the cookie actually changed. Now I try to test the exact thing I care about, not something that merely looks like it.</p>
+
+        <p style="margin-bottom: 15px;">Details matter in security code, too. Cloud Cache used to trim trailing slashes from the identity provider's address, which looked like harmless tidying. But Auth0's address ends in a slash, and tokens have to match it exactly, so every Auth0 login would have been rejected.</p>
+
+        <h3 style="margin-top: 25px; margin-bottom: 10px;">What's next</h3>
+
+        <p style="margin-bottom: 15px;">Cloud Cache works today, but data only lives in memory and each server holds its own share of the keys. The roadmap is about making it a cache you can depend on:</p>
+
+        <ul style="margin-bottom: 15px; padding-left: 25px;">
+            <li style="margin-bottom: 6px;"><strong>Request forwarding</strong> so any server can answer for any key, and the cluster behaves like one cache.</li>
+            <li style="margin-bottom: 6px;"><strong>Persistence</strong>, writing data to disk so it survives a restart.</li>
+            <li style="margin-bottom: 6px;"><strong>Replication</strong>, keeping copies of each key on more than one server.</li>
+            <li style="margin-bottom: 6px;"><strong>Per-organization limits</strong> on how much memory each team can use.</li>
+            <li><strong>More identity providers</strong> for team management in the dashboard, starting with Auth0 and Entra ID.</li>
+        </ul>
+
+        <p>Cloud Cache is open source. The code is available on <a href="https://github.com/PlutoPro/Cloud-Cache">GitHub</a> if you want to try it, follow along as it grows or contribute.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; font-family: sans-serif; color: #333;">
+        <p>&copy; 2026 My Portfolio. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
